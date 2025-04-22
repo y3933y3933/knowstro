@@ -1,3 +1,6 @@
+# Include variables from the .envrc file
+include .envrc
+
 ## help: print this help message
 .PHONY: help
 help:
@@ -8,7 +11,7 @@ help:
 ## run/api: run the cmd/api application
 .PHONY: run/api
 run:
-	go run ./cmd/api
+	go run ./cmd/api -port=${PORT} -env=${ENV}
 
 
 ## tidy: tidy module dependencies and format all .go files
