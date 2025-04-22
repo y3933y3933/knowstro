@@ -1,7 +1,15 @@
 package main
 
-import "fmt"
+const version = "1.0.0"
+
+type application struct {
+}
 
 func main() {
-	fmt.Println("Hello world")
+	app := application{}
+
+	router := app.routes()
+
+	router.Run()
+
 }
