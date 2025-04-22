@@ -11,7 +11,7 @@ help:
 ## run/api: run the cmd/api application
 .PHONY: run/api
 run:
-	go run ./cmd/api -port=${PORT} -env=${ENV}
+	go run . -port=${PORT} -env=${ENV}
 
 
 ## tidy: tidy module dependencies and format all .go files
