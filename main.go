@@ -7,11 +7,15 @@ import (
 	"os"
 	"time"
 
+	"github.com/gin-gonic/gin/binding"
 	"github.com/y3933y3933/knowstro/internal/app"
 	"github.com/y3933y3933/knowstro/internal/routes"
 )
 
 func main() {
+	// gin decoder config
+	binding.EnableDecoderDisallowUnknownFields = true
+
 	app, err := app.NewApplication()
 	if err != nil {
 		panic(err)

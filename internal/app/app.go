@@ -7,6 +7,8 @@ import (
 	"os"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/y3933y3933/knowstro/internal/api"
 	"github.com/y3933y3933/knowstro/internal/store"
 	"github.com/y3933y3933/knowstro/migrations"
 )
@@ -19,9 +21,10 @@ type config struct {
 }
 
 type Application struct {
-	Config config
-	Logger *slog.Logger
-	DB     *sql.DB
+	Config              config
+	Logger              *slog.Logger
+	DB                  *sql.DB
+	ResourceTypeHandler *api.ResourceTypeHandler
 }
 
 func NewApplication() (*Application, error) {
@@ -36,9 +39,13 @@ func NewApplication() (*Application, error) {
 		panic(err)
 	}
 
+	// handlers
+	resourceTypeHandler := api.NewResourceTypeHandler(store.NewResourceTypeStore(pgDB))
+
 	app := &Application{
-		Logger: logger,
-		DB:     pgDB,
+		Logger:              logger,
+		DB:                  pgDB,
+		ResourceTypeHandler: resourceTypeHandler,
 	}
 
 	return app, nil
