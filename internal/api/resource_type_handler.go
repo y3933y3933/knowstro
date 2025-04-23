@@ -13,10 +13,6 @@ type ResourceTypeHandler struct {
 	ResourceTypeStore store.ResourceTypeStore
 }
 
-type ResourceTypeRequest struct {
-	Name string `json:"name" binding:"required,min=1,max=50"`
-}
-
 func NewResourceTypeHandler(resourceTypeStore store.ResourceTypeStore) *ResourceTypeHandler {
 	return &ResourceTypeHandler{
 		ResourceTypeStore: resourceTypeStore,
@@ -33,14 +29,22 @@ func (rh *ResourceTypeHandler) ListTypes(c *gin.Context) {
 }
 
 func (rh *ResourceTypeHandler) CreateType(c *gin.Context) {
-	var req ResourceTypeRequest
+	var req struct {
+		Name        *string `json:"name" binding:"required,min=1,max=50"`
+		Description *string `json:"description" binding:"omitzero,max=255"`
+	}
 
 	if err := readJSON(c, &req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	resourceType, err := rh.ResourceTypeStore.CreateResourceType(&store.ResourceType{Name: req.Name})
+	resourceType := &store.ResourceType{
+		Name:        *req.Name,
+		Description: *req.Description,
+	}
+
+	resourceType, err := rh.ResourceTypeStore.CreateResourceType(resourceType)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong."})
 		return
@@ -70,14 +74,24 @@ func (rh *ResourceTypeHandler) UpdateType(c *gin.Context) {
 		return
 	}
 
-	var req ResourceTypeRequest
+	var req struct {
+		Name        *string `json:"name" binding:"omitzero,max=50"`
+		Description *string `json:"description" binding:"omitzero,max=255"`
+	}
 
 	if err := readJSON(c, &req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	resourceType.Name = req.Name
+	if req.Name != nil {
+		resourceType.Name = *req.Name
+	}
+
+	if req.Description != nil {
+		resourceType.Description = *req.Description
+	}
+
 	_, err = rh.ResourceTypeStore.UpdateResourceType(resourceType)
 	if err != nil {
 		switch {

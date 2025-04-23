@@ -8,8 +8,9 @@ import (
 )
 
 type ResourceType struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
 }
 
 type PostgresResourceTypeStore struct {
@@ -28,14 +29,19 @@ type ResourceTypeStore interface {
 
 func (pg *PostgresResourceTypeStore) CreateResourceType(resource_type *ResourceType) (*ResourceType, error) {
 	query := `
-	 INSERT INTO resource_types(name)
-	 VALUES ($1)
-	 RETURNING id, name
+	 INSERT INTO resource_types(name, description)
+	 VALUES ($1, $2)
+	 RETURNING id, name, description
 	`
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := pg.db.QueryRowContext(ctx, query, resource_type.Name).Scan(&resource_type.ID, &resource_type.Name)
+	args := []any{
+		resource_type.Name,
+		resource_type.Description,
+	}
+
+	err := pg.db.QueryRowContext(ctx, query, args...).Scan(&resource_type.ID, &resource_type.Name, &resource_type.Description)
 
 	if err != nil {
 		return nil, err
@@ -51,7 +57,7 @@ func (pg *PostgresResourceTypeStore) GetResourceTypeByID(id int64) (*ResourceTyp
 	var resourceType ResourceType
 
 	query := `
-		SELECT id, name 
+		SELECT id, name , description
 		FROM resource_types
 		WHERE id = ($1)
 	`
@@ -59,7 +65,7 @@ func (pg *PostgresResourceTypeStore) GetResourceTypeByID(id int64) (*ResourceTyp
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := pg.db.QueryRowContext(ctx, query, id).Scan(&resourceType.ID, &resourceType.Name)
+	err := pg.db.QueryRowContext(ctx, query, id).Scan(&resourceType.ID, &resourceType.Name, &resourceType.Description)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -79,19 +85,19 @@ func (pg *PostgresResourceTypeStore) UpdateResourceType(resourceType *ResourceTy
 
 	query := `
 		UPDATE resource_types
-		SET name = $2
-		WHERE id = $1
-		RETURNING id, name
+		SET name = $1, description = $2
+		WHERE id = $3
+		RETURNING id, name, description
 	`
 
 	args := []any{
-		resourceType.ID, resourceType.Name,
+		resourceType.Name, resourceType.Description, resourceType.ID,
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := pg.db.QueryRowContext(ctx, query, args...).Scan(&resourceType.ID, &resourceType.Name)
+	err := pg.db.QueryRowContext(ctx, query, args...).Scan(&resourceType.ID, &resourceType.Name, &resourceType.Description)
 	if err != nil {
 		return nil, err
 	}
