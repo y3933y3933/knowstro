@@ -8,6 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/y3933y3933/knowstro/internal/store"
+	"github.com/y3933y3933/knowstro/migrations"
 )
 
 const version = "1.0.0"
@@ -29,6 +30,12 @@ func NewApplication() (*Application, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	err = store.MigrateFS(pgDB, migrations.FS, ".")
+	if err != nil {
+		panic(err)
+	}
+
 	app := &Application{
 		Logger: logger,
 		DB:     pgDB,
