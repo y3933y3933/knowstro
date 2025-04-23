@@ -3,7 +3,8 @@
 CREATE TABLE IF NOT EXISTS resource_types (
     id BIGSERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL UNIQUE,
-    description TEXT
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 -- +goose StatementEnd
 
