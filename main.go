@@ -16,6 +16,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer app.DB.Close()
+
 	flag.IntVar(&app.Config.Port, "port", 8080, "API server port")
 	flag.StringVar(&app.Config.Env, "env", "development", "Environment (dev | prod)")
 	flag.Parse()
