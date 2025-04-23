@@ -1,1 +1,3 @@
 .envrc
+/database
+./database/
