@@ -29,6 +29,7 @@ type ResourceTypeStore interface {
 	UpdateResourceType(*ResourceType) (*ResourceType, error)
 	DeleteResourceType(id int64) error
 	GetAllResourceType() ([]*ResourceType, error)
+	ResetResourceType() error
 }
 
 func (pg *PostgresResourceTypeStore) CreateResourceType(resource_type *ResourceType) (*ResourceType, error) {
@@ -184,4 +185,13 @@ func (pg *PostgresResourceTypeStore) GetAllResourceType() ([]*ResourceType, erro
 	}
 
 	return resourceTypes, nil
+}
+
+func (pg *PostgresResourceTypeStore) ResetResourceType() error {
+	query := `TRUNCATE TABLE resource_types RESTART IDENTITY CASCADE;`
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := pg.db.ExecContext(ctx, query)
+	return err
 }

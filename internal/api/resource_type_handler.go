@@ -162,3 +162,12 @@ func (rh *ResourceTypeHandler) DeleteType(c *gin.Context) {
 		}
 	}
 }
+
+func (rh *ResourceTypeHandler) ResetTypes(c *gin.Context) {
+	err := rh.ResourceTypeStore.ResetResourceType()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to reset resource types"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"message": "resource types reset successfully"})
+}

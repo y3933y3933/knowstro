@@ -26,6 +26,7 @@ func SetupRoutes(app *app.Application) *gin.Engine {
 			types.PUT("/:id", app.ResourceTypeHandler.UpdateType)
 			types.DELETE("/:id", app.ResourceTypeHandler.DeleteType)
 			types.GET("", app.ResourceTypeHandler.ListTypes)
+			types.DELETE("/reset", app.ResourceTypeHandler.ResetTypes)
 		}
 
 	}
