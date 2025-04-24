@@ -22,8 +22,9 @@ func SetupRoutes(app *app.Application) *gin.Engine {
 		types := v1.Group("/types")
 		{
 			types.GET("/:id", app.ResourceTypeHandler.GetTypeByID)
-			types.PUT("/:id", app.ResourceTypeHandler.UpdateType)
 			types.POST("", app.ResourceTypeHandler.CreateType)
+			types.PUT("/:id", app.ResourceTypeHandler.UpdateType)
+			types.DELETE("/:id", app.ResourceTypeHandler.DeleteType)
 			types.GET("", app.ResourceTypeHandler.ListTypes)
 		}
 

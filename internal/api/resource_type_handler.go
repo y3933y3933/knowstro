@@ -21,11 +21,14 @@ func NewResourceTypeHandler(resourceTypeStore store.ResourceTypeStore) *Resource
 }
 
 func (rh *ResourceTypeHandler) ListTypes(c *gin.Context) {
+	types, err := rh.ResourceTypeStore.GetAllResourceType()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong."})
+		return
+	}
 
-	c.JSON(http.StatusOK, map[string]any{
-		"id":          1,
-		"name":        "後端",
-		"description": "後端",
+	c.JSON(http.StatusOK, gin.H{
+		"resourceTypes": types,
 	})
 }
 
@@ -128,4 +131,22 @@ func (rh *ResourceTypeHandler) GetTypeByID(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"data": resourceType})
 
+}
+
+func (rh *ResourceTypeHandler) DeleteType(c *gin.Context) {
+	id, err := utils.ReadIDParam(c)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = rh.ResourceTypeStore.DeleteResourceType(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, store.ErrRecordNotFound):
+			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong"})
+		}
+	}
 }
