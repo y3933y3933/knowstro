@@ -1,4 +1,4 @@
-package api
+package utils
 
 import (
 	"encoding/json"
@@ -13,7 +13,7 @@ import (
 )
 
 // TODO: validator field error handling
-func readJSON(c *gin.Context, dst any) error {
+func ReadJSON(c *gin.Context, dst any) error {
 	err := c.ShouldBindJSON(dst)
 
 	if err != nil {
@@ -53,7 +53,7 @@ func readJSON(c *gin.Context, dst any) error {
 	return nil
 }
 
-func readIDParam(c *gin.Context) (int64, error) {
+func ReadIDParam(c *gin.Context) (int64, error) {
 	s := c.Param("id")
 	i, err := strconv.ParseInt(s, 10, 64)
 	if err != nil || i < 1 {

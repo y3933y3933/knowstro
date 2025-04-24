@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/y3933y3933/knowstro/internal/store"
+	"github.com/y3933y3933/knowstro/internal/utils"
 )
 
 type ResourceTypeHandler struct {
@@ -34,7 +35,7 @@ func (rh *ResourceTypeHandler) CreateType(c *gin.Context) {
 		Description *string `json:"description" binding:"omitzero,max=255"`
 	}
 
-	if err := readJSON(c, &req); err != nil {
+	if err := utils.ReadJSON(c, &req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -57,7 +58,7 @@ func (rh *ResourceTypeHandler) CreateType(c *gin.Context) {
 }
 
 func (rh *ResourceTypeHandler) UpdateType(c *gin.Context) {
-	id, err := readIDParam(c)
+	id, err := utils.ReadIDParam(c)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
@@ -79,7 +80,7 @@ func (rh *ResourceTypeHandler) UpdateType(c *gin.Context) {
 		Description *string `json:"description" binding:"omitzero,max=255"`
 	}
 
-	if err := readJSON(c, &req); err != nil {
+	if err := utils.ReadJSON(c, &req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -108,7 +109,7 @@ func (rh *ResourceTypeHandler) UpdateType(c *gin.Context) {
 }
 
 func (rh *ResourceTypeHandler) GetTypeByID(c *gin.Context) {
-	id, err := readIDParam(c)
+	id, err := utils.ReadIDParam(c)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
