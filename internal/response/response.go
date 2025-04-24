@@ -9,7 +9,6 @@ type Response[T any] struct {
 }
 
 type APIError struct {
-	Code    int          `json:"code"`
 	Message string       `json:"message"`
 	Details []FieldError `json:"details,omitzero"`
 }
@@ -30,7 +29,6 @@ func NewError(code int, msg string, details ...FieldError) (int, Response[any]) 
 	return code, Response[any]{
 		Success: false,
 		Error: &APIError{
-			Code:    code,
 			Message: msg,
 			Details: details,
 		},
