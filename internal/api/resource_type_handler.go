@@ -18,6 +18,7 @@ type ResourceTypeHandler struct {
 func NewResourceTypeHandler(resourceTypeStore store.ResourceTypeStore, logger *slog.Logger) *ResourceTypeHandler {
 	return &ResourceTypeHandler{
 		ResourceTypeStore: resourceTypeStore,
+		Logger:            logger,
 	}
 }
 
