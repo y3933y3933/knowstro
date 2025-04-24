@@ -15,12 +15,11 @@ func SetupRoutes(app *app.Application) *gin.Engine {
 		c.Next()
 	})
 
-	v1 := r.Group("/v1")
 	{
+		v1 := r.Group("v1")
 		v1.GET("/healthz", app.HealthCheck)
-
-		types := v1.Group("/types")
 		{
+			types := v1.Group("/types")
 			types.GET("/:id", app.ResourceTypeHandler.GetTypeByID)
 			types.POST("", app.ResourceTypeHandler.CreateType)
 			types.PUT("/:id", app.ResourceTypeHandler.UpdateType)
