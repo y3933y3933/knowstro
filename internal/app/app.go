@@ -40,7 +40,7 @@ func NewApplication() (*Application, error) {
 	}
 
 	// handlers
-	resourceTypeHandler := api.NewResourceTypeHandler(store.NewResourceTypeStore(pgDB))
+	resourceTypeHandler := api.NewResourceTypeHandler(store.NewResourceTypeStore(pgDB), logger)
 
 	app := &Application{
 		Logger:              logger,

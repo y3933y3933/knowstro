@@ -2,19 +2,20 @@ package api
 
 import (
 	"errors"
-	"fmt"
-	"net/http"
+	"log/slog"
 
 	"github.com/gin-gonic/gin"
+	"github.com/y3933y3933/knowstro/internal/response"
 	"github.com/y3933y3933/knowstro/internal/store"
 	"github.com/y3933y3933/knowstro/internal/utils"
 )
 
 type ResourceTypeHandler struct {
 	ResourceTypeStore store.ResourceTypeStore
+	Logger            *slog.Logger
 }
 
-func NewResourceTypeHandler(resourceTypeStore store.ResourceTypeStore) *ResourceTypeHandler {
+func NewResourceTypeHandler(resourceTypeStore store.ResourceTypeStore, logger *slog.Logger) *ResourceTypeHandler {
 	return &ResourceTypeHandler{
 		ResourceTypeStore: resourceTypeStore,
 	}
@@ -23,13 +24,13 @@ func NewResourceTypeHandler(resourceTypeStore store.ResourceTypeStore) *Resource
 func (rh *ResourceTypeHandler) ListTypes(c *gin.Context) {
 	types, err := rh.ResourceTypeStore.GetAllResourceType()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong."})
+		rh.Logger.Error(err.Error())
+		response.InternalError(c)
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"resourceTypes": types,
-	})
+	response.Success(c, types)
+
 }
 
 func (rh *ResourceTypeHandler) CreateType(c *gin.Context) {
@@ -39,7 +40,8 @@ func (rh *ResourceTypeHandler) CreateType(c *gin.Context) {
 	}
 
 	if err := utils.ReadJSON(c, &req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		rh.Logger.Error(err.Error())
+		response.BadRequest(c, err.Error())
 		return
 	}
 
@@ -54,36 +56,38 @@ func (rh *ResourceTypeHandler) CreateType(c *gin.Context) {
 
 	resourceType, err := rh.ResourceTypeStore.CreateResourceType(resourceType)
 	if err != nil {
+		rh.Logger.Error(err.Error())
 		switch {
 		case errors.Is(err, store.ErrDuplicateResourceType):
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+			response.UnprocessableError(c, err.Error())
+
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong."})
+			response.InternalError(c)
 		}
 
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"resourceType": resourceType,
-	})
+	response.Success(c, resourceType)
 
 }
 
 func (rh *ResourceTypeHandler) UpdateType(c *gin.Context) {
 	id, err := utils.ReadIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		rh.Logger.Error(err.Error())
+		response.RecordNotFound(c)
 		return
 	}
 
 	resourceType, err := rh.ResourceTypeStore.GetResourceTypeByID(id)
 	if err != nil {
+		rh.Logger.Error(err.Error())
 		switch {
 		case errors.Is(err, store.ErrRecordNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			response.RecordNotFound(c)
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong"})
+			response.InternalError(c)
 		}
 		return
 	}
@@ -94,7 +98,8 @@ func (rh *ResourceTypeHandler) UpdateType(c *gin.Context) {
 	}
 
 	if err := utils.ReadJSON(c, &req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		rh.Logger.Error(err.Error())
+		response.BadRequest(c, err.Error())
 		return
 	}
 
@@ -108,66 +113,73 @@ func (rh *ResourceTypeHandler) UpdateType(c *gin.Context) {
 
 	_, err = rh.ResourceTypeStore.UpdateResourceType(resourceType)
 	if err != nil {
+		rh.Logger.Error(err.Error())
 		switch {
 		case errors.Is(err, store.ErrRecordNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			response.RecordNotFound(c)
 		case errors.Is(err, store.ErrDuplicateResourceType):
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+			response.UnprocessableError(c, err.Error())
 		default:
-			fmt.Println(err.Error())
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong"})
+			response.InternalError(c)
 		}
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"resourceType": resourceType})
+
+	response.Success(c, resourceType)
 
 }
 
 func (rh *ResourceTypeHandler) GetTypeByID(c *gin.Context) {
 	id, err := utils.ReadIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		rh.Logger.Error(err.Error())
+		response.RecordNotFound(c)
 		return
 	}
 
 	resourceType, err := rh.ResourceTypeStore.GetResourceTypeByID(id)
 	if err != nil {
+		rh.Logger.Error(err.Error())
 		switch {
 		case errors.Is(err, store.ErrRecordNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			response.RecordNotFound(c)
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong"})
+			response.InternalError(c)
 		}
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"resourceType": resourceType})
+	response.Success(c, resourceType)
 
 }
 
 func (rh *ResourceTypeHandler) DeleteType(c *gin.Context) {
 	id, err := utils.ReadIDParam(c)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		rh.Logger.Error(err.Error())
+		response.RecordNotFound(c)
 		return
 	}
 
 	err = rh.ResourceTypeStore.DeleteResourceType(id)
 	if err != nil {
+		rh.Logger.Error(err.Error())
 		switch {
 		case errors.Is(err, store.ErrRecordNotFound):
-			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+			response.RecordNotFound(c)
 		default:
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong"})
+			response.InternalError(c)
 		}
 	}
+	response.Success(c, nil)
 }
 
 func (rh *ResourceTypeHandler) ResetTypes(c *gin.Context) {
 	err := rh.ResourceTypeStore.ResetResourceType()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to reset resource types"})
+		rh.Logger.Error(err.Error())
+		response.InternalError(c)
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"message": "resource types reset successfully"})
+	response.Success(c, nil)
 }
