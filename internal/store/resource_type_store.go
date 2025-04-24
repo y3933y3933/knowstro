@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"time"
+
+	"github.com/jackc/pgconn"
 )
 
 type ResourceType struct {
@@ -46,6 +48,10 @@ func (pg *PostgresResourceTypeStore) CreateResourceType(resource_type *ResourceT
 	err := pg.db.QueryRowContext(ctx, query, args...).Scan(&resource_type.ID, &resource_type.Name, &resource_type.Description)
 
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == UniqueViolationErr {
+			return nil, ErrDuplicateResourceType
+		}
 		return nil, err
 	}
 	return resource_type, nil
@@ -101,6 +107,10 @@ func (pg *PostgresResourceTypeStore) UpdateResourceType(resourceType *ResourceTy
 
 	err := pg.db.QueryRowContext(ctx, query, args...).Scan(&resourceType.ID, &resourceType.Name, &resourceType.Description)
 	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == UniqueViolationErr {
+			return nil, ErrDuplicateResourceType
+		}
 		return nil, err
 	}
 	return resourceType, nil

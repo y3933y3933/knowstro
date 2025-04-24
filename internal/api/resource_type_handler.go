@@ -43,19 +43,29 @@ func (rh *ResourceTypeHandler) CreateType(c *gin.Context) {
 		return
 	}
 
-	resourceType := &store.ResourceType{
-		Name:        *req.Name,
-		Description: *req.Description,
+	resourceType := &store.ResourceType{}
+	if req.Name != nil {
+		resourceType.Name = *req.Name
+	}
+
+	if req.Description != nil {
+		resourceType.Description = *req.Description
 	}
 
 	resourceType, err := rh.ResourceTypeStore.CreateResourceType(resourceType)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong."})
+		switch {
+		case errors.Is(err, store.ErrDuplicateResourceType):
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
+		default:
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong."})
+		}
+
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data": resourceType,
+		"resourceType": resourceType,
 	})
 
 }
@@ -101,13 +111,15 @@ func (rh *ResourceTypeHandler) UpdateType(c *gin.Context) {
 		switch {
 		case errors.Is(err, store.ErrRecordNotFound):
 			c.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		case errors.Is(err, store.ErrDuplicateResourceType):
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		default:
 			fmt.Println(err.Error())
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "something went wrong"})
 		}
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"data": resourceType})
+	c.JSON(http.StatusOK, gin.H{"resourceType": resourceType})
 
 }
 
@@ -129,7 +141,7 @@ func (rh *ResourceTypeHandler) GetTypeByID(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"data": resourceType})
+	c.JSON(http.StatusOK, gin.H{"resourceType": resourceType})
 
 }
 
