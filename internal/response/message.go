@@ -9,6 +9,7 @@ import (
 const (
 	MsgRecordNotFound      = "record not found"
 	MsgInternalServerError = "internal server error"
+	MsgFailedValidation    = "validation fail"
 )
 
 func Success(c *gin.Context, data any) {
@@ -33,5 +34,10 @@ func BadRequest(c *gin.Context, msg string) {
 
 func UnprocessableError(c *gin.Context, msg string) {
 	status, res := NewError(http.StatusUnprocessableEntity, msg)
+	c.JSON(status, res)
+}
+
+func FailedValidationError(c *gin.Context, details []FieldError) {
+	status, res := NewError(http.StatusUnprocessableEntity, MsgFailedValidation, details...)
 	c.JSON(status, res)
 }

@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
+	"github.com/y3933y3933/knowstro/internal/response"
 )
 
 // TODO: validator field error handling
@@ -61,4 +63,41 @@ func ReadIDParam(c *gin.Context) (int64, error) {
 	}
 
 	return i, nil
+}
+
+func ValidateJSON(err error) validator.ValidationErrors {
+	var ve validator.ValidationErrors
+	if errors.As(err, &ve) {
+		return ve
+	}
+	return nil
+}
+
+func msgForTag(fe validator.FieldError) string {
+	switch fe.Tag() {
+	case "required":
+		return fmt.Sprintf("%s is required", fe.Field())
+	case "min":
+		return fmt.Sprintf("%s must be at least %s characters long", fe.Field(), fe.Param())
+	case "max":
+		return fmt.Sprintf("%s cannot be longer than %s characters", fe.Field(), fe.Param())
+	default:
+		return fmt.Sprintf("%s is not valid", fe.Field())
+
+	}
+}
+
+func ValidationErrors(err error) (details []response.FieldError, isValid bool) {
+	var ve validator.ValidationErrors
+	if errors.As(err, &ve) {
+		details = make([]response.FieldError, len(ve))
+		for i, fe := range ve {
+			details[i] = response.FieldError{
+				Field:   fe.Field(),
+				Message: msgForTag(fe),
+			}
+		}
+		return details, false
+	}
+	return nil, true
 }

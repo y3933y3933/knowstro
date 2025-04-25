@@ -31,7 +31,6 @@ func (rh *ResourceTypeHandler) ListTypes(c *gin.Context) {
 	}
 
 	response.Success(c, types)
-
 }
 
 func (rh *ResourceTypeHandler) CreateType(c *gin.Context) {
@@ -42,8 +41,13 @@ func (rh *ResourceTypeHandler) CreateType(c *gin.Context) {
 
 	if err := utils.ReadJSON(c, &req); err != nil {
 		rh.logger.Error(err.Error())
-		response.BadRequest(c, err.Error())
+		if details, isValid := utils.ValidationErrors(err); !isValid {
+			response.FailedValidationError(c, details)
+		} else {
+			response.BadRequest(c, err.Error())
+		}
 		return
+
 	}
 
 	resourceType := &store.ResourceType{}
@@ -100,7 +104,11 @@ func (rh *ResourceTypeHandler) UpdateType(c *gin.Context) {
 
 	if err := utils.ReadJSON(c, &req); err != nil {
 		rh.logger.Error(err.Error())
-		response.BadRequest(c, err.Error())
+		if details, isValid := utils.ValidationErrors(err); !isValid {
+			response.FailedValidationError(c, details)
+		} else {
+			response.BadRequest(c, err.Error())
+		}
 		return
 	}
 
