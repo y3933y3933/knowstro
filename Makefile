@@ -31,3 +31,8 @@ audit:
 	go vet ./...
 	go tool staticcheck ./... @echo 'Running tests...'
 	go test -race -vet=off ./...
+
+.PHONY: migration
+migration:
+	@echo 'Creating migration files for ${name}'
+	goose -dir ./migrations create ${name} sql -s
