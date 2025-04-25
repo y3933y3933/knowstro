@@ -19,7 +19,7 @@ type PostgresResourceTypeStore struct {
 	db *sql.DB
 }
 
-func NewResourceTypeStore(db *sql.DB) *PostgresResourceTypeStore {
+func NewPostgresResourceTypeStore(db *sql.DB) *PostgresResourceTypeStore {
 	return &PostgresResourceTypeStore{db: db}
 }
 
