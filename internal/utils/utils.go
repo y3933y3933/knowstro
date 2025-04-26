@@ -81,6 +81,8 @@ func msgForTag(fe validator.FieldError) string {
 		return fmt.Sprintf("%s must be at least %s characters long", fe.Field(), fe.Param())
 	case "max":
 		return fmt.Sprintf("%s cannot be longer than %s characters", fe.Field(), fe.Param())
+	case "email":
+		return fmt.Sprintf("%s must be a valid email address", fe.Field())
 	default:
 		return fmt.Sprintf("%s is not valid", fe.Field())
 

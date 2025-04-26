@@ -19,13 +19,21 @@ func SetupRoutes(app *app.Application) *gin.Engine {
 		v1 := r.Group("v1")
 		v1.GET("/healthz", app.HealthCheck)
 		{
-			types := v1.Group("/types")
-			types.GET("/:id", app.ResourceTypeHandler.GetTypeByID)
-			types.POST("", app.ResourceTypeHandler.CreateType)
-			types.PUT("/:id", app.ResourceTypeHandler.UpdateType)
-			types.DELETE("/:id", app.ResourceTypeHandler.DeleteType)
-			types.GET("", app.ResourceTypeHandler.ListTypes)
-			types.DELETE("/reset", app.ResourceTypeHandler.ResetTypes)
+			{
+				types := v1.Group("/types")
+				types.GET("/:id", app.ResourceTypeHandler.GetTypeByID)
+				types.POST("", app.ResourceTypeHandler.CreateType)
+				types.PUT("/:id", app.ResourceTypeHandler.UpdateType)
+				types.DELETE("/:id", app.ResourceTypeHandler.DeleteType)
+				types.GET("", app.ResourceTypeHandler.ListTypes)
+				types.DELETE("/reset", app.ResourceTypeHandler.ResetTypes)
+			}
+
+			{
+				users := v1.Group("/users")
+				users.POST("", app.UserHandler.HandleRegisterUser)
+			}
+
 		}
 
 	}

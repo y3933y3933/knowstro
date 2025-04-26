@@ -25,6 +25,7 @@ type Application struct {
 	Logger              *slog.Logger
 	DB                  *sql.DB
 	ResourceTypeHandler *api.ResourceTypeHandler
+	UserHandler         *api.UserHandler
 }
 
 func NewApplication() (*Application, error) {
@@ -41,11 +42,13 @@ func NewApplication() (*Application, error) {
 
 	// handlers
 	resourceTypeHandler := api.NewResourceTypeHandler(store.NewPostgresResourceTypeStore(pgDB), logger)
+	userHandler := api.NewUserHandler(store.NewPostgresUserStore(pgDB), logger)
 
 	app := &Application{
 		Logger:              logger,
 		DB:                  pgDB,
 		ResourceTypeHandler: resourceTypeHandler,
+		UserHandler:         userHandler,
 	}
 
 	return app, nil
