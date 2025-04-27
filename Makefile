@@ -36,3 +36,8 @@ audit:
 migration:
 	@echo 'Creating migration files for ${name}'
 	goose -dir ./migrations create ${name} sql -s
+
+.PHONY: build
+build:
+	@echo 'Building...'
+	go build -ldflags='-s' -o=./bin/api .
