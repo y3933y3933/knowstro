@@ -12,8 +12,13 @@ const (
 	MsgFailedValidation    = "validation fail"
 )
 
-func Success(c *gin.Context, data any) {
-	status, res := NewSuccess(data)
+func SuccessOK(c *gin.Context, data any) {
+	status, res := NewSuccess(http.StatusOK, data)
+	c.JSON(status, res)
+}
+
+func SuccessCreated(c *gin.Context, data any) {
+	status, res := NewSuccess(http.StatusCreated, data)
 	c.JSON(status, res)
 }
 

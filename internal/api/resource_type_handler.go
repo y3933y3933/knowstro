@@ -30,7 +30,7 @@ func (rh *ResourceTypeHandler) ListTypes(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, types)
+	response.SuccessOK(c, types)
 }
 
 func (rh *ResourceTypeHandler) CreateType(c *gin.Context) {
@@ -73,7 +73,7 @@ func (rh *ResourceTypeHandler) CreateType(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, resourceType)
+	response.SuccessOK(c, resourceType)
 
 }
 
@@ -134,7 +134,7 @@ func (rh *ResourceTypeHandler) UpdateType(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, resourceType)
+	response.SuccessOK(c, resourceType)
 
 }
 
@@ -158,7 +158,7 @@ func (rh *ResourceTypeHandler) GetTypeByID(c *gin.Context) {
 		return
 	}
 
-	response.Success(c, resourceType)
+	response.SuccessOK(c, resourceType)
 
 }
 
@@ -180,7 +180,7 @@ func (rh *ResourceTypeHandler) DeleteType(c *gin.Context) {
 			response.InternalError(c)
 		}
 	}
-	response.Success(c, nil)
+	response.SuccessOK(c, nil)
 }
 
 func (rh *ResourceTypeHandler) ResetTypes(c *gin.Context) {
@@ -190,5 +190,5 @@ func (rh *ResourceTypeHandler) ResetTypes(c *gin.Context) {
 		response.InternalError(c)
 		return
 	}
-	response.Success(c, nil)
+	response.SuccessOK(c, nil)
 }

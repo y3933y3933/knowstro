@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/gin-gonic/gin"
+	"github.com/y3933y3933/knowstro/internal/mailer"
 	"github.com/y3933y3933/knowstro/internal/response"
 	"github.com/y3933y3933/knowstro/internal/store"
 	"github.com/y3933y3933/knowstro/internal/utils"
@@ -19,12 +20,14 @@ type registerUserRequest struct {
 type UserHandler struct {
 	userStore store.UserStore
 	logger    *slog.Logger
+	mailer    *mailer.Mailer
 }
 
-func NewUserHandler(userStore store.UserStore, logger *slog.Logger) *UserHandler {
+func NewUserHandler(userStore store.UserStore, logger *slog.Logger, mailer *mailer.Mailer) *UserHandler {
 	return &UserHandler{
 		userStore: userStore,
 		logger:    logger,
+		mailer:    mailer,
 	}
 }
 
@@ -71,7 +74,24 @@ func (h *UserHandler) HandleRegisterUser(c *gin.Context) {
 
 		return
 	}
+	go func() {
+		data := struct {
+			AppName       string
+			UserName      string
+			ActivationURL string
+			Token         string
+		}{
+			AppName:       "Knowstro",
+			UserName:      user.Name,
+			ActivationURL: "test",
+			Token:         "test",
+		}
 
-	// TODO: http.StatusCreated
-	response.Success(c, user)
+		err = h.mailer.Send(user.Email, "user_welcome.tmpl", data)
+		if err != nil {
+			h.logger.Error(err.Error())
+
+		}
+	}()
+	response.SuccessCreated(c, user)
 }

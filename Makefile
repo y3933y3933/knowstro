@@ -11,7 +11,7 @@ help:
 ## run/api: run the cmd/api application
 .PHONY: run/api
 run:
-	go run . -port=${PORT} -env=${ENV}
+	go run . -port=${PORT} -env=${ENV} -smtp-host=${SMTP_HOST} -smtp-port=${SMTP_PORT} -smtp-username=${SMTP_USERNAME} -smtp-password=${SMTP_PASSWORD} -smtp-sender=${SMTP_SENDER}
 
 
 ## tidy: tidy module dependencies and format all .go files

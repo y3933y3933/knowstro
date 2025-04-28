@@ -1,7 +1,5 @@
 package response
 
-import "net/http"
-
 type Response[T any] struct {
 	Success bool      `json:"success"`
 	Data    *T        `json:"data,omitzero"`
@@ -18,8 +16,8 @@ type FieldError struct {
 	Message string `json:"message"`
 }
 
-func NewSuccess[T any](data T) (int, Response[T]) {
-	return http.StatusOK, Response[T]{
+func NewSuccess[T any](status int, data T) (int, Response[T]) {
+	return status, Response[T]{
 		Success: true,
 		Data:    &data,
 	}

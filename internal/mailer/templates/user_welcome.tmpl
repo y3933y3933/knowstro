@@ -1,0 +1,59 @@
+{{define "subject"}}【{{.AppName}}】請啟用你的帳號{{end}}
+
+{{define "plainBody"}}嗨 {{.UserName}}，
+
+歡迎加入 {{.AppName}}！
+請點擊或複製下面的連結，進入啟用頁面，然後在該頁面輸入你的啟用 Token 以完成啟用：
+
+啟用頁面：
+{{.ActivationURL}}
+
+你的啟用 Token：
+{{.Token}}
+
+如有任何問題，歡迎直接回覆此信。
+
+{{.AppName}} 團隊
+{{end}}
+
+{{define "htmlBody"}}<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>啟用你的 {{.AppName}} 帳號</title>
+  <style>
+    .btn {
+      display: inline-block;
+      padding: 12px 24px;
+      margin: 16px 0;
+      font-size: 16px;
+      color: #fff;
+      background-color: #2d8cf0;
+      text-decoration: none;
+      border-radius: 4px;
+    }
+    .box {
+      padding: 12px;
+      background: #f4f4f4;
+      border-radius: 4px;
+      word-break: break-all;
+    }
+    .label { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <p>嗨 {{.UserName}}，</p>
+  <p>感謝你註冊 <strong>{{.AppName}}</strong>！</p>
+  <p>請點擊下方按鈕進入啟用頁面，並在啟用頁面中貼上以下 Token：</p>
+  <p>
+    <a href="{{.ActivationURL}}" class="btn">前往啟用頁面</a>
+  </p>
+  <div class="box">
+    <span class="label">啟用 Token：</span>
+    <p>{{.Token}}</p>
+  </div>
+  <p>如果你沒有註冊過 {{.AppName}}，請忽略此郵件。</p>
+  <p>此致，<br>{{.AppName}} 團隊</p>
+</body>
+</html>
+{{end}}
