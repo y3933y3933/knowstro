@@ -13,6 +13,7 @@ import (
 
 	"github.com/y3933y3933/knowstro/internal/api"
 	"github.com/y3933y3933/knowstro/internal/mailer"
+	"github.com/y3933y3933/knowstro/internal/middleware"
 	"github.com/y3933y3933/knowstro/internal/store"
 	"github.com/y3933y3933/knowstro/migrations"
 )
@@ -41,6 +42,7 @@ type Application struct {
 	UserHandler         *api.UserHandler
 	TokenHandler        *api.TokenHandler
 	Mailer              *mailer.Mailer
+	UserMiddleware      *middleware.UserMiddleware
 }
 
 func NewApplication() (*Application, error) {
@@ -81,6 +83,7 @@ func NewApplication() (*Application, error) {
 		UserHandler:         userHandler,
 		TokenHandler:        tokenHandler,
 		Mailer:              mailer,
+		UserMiddleware:      &middleware.UserMiddleware{UserStore: userStore},
 	}
 
 	return app, nil

@@ -15,6 +15,8 @@ func SetupRoutes(app *app.Application) *gin.Engine {
 		c.Next()
 	})
 
+	r.Use(app.UserMiddleware.Authenticate())
+
 	{
 		v1 := r.Group("v1")
 		v1.GET("/healthz", app.HealthCheck)
