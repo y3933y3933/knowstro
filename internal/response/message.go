@@ -10,6 +10,7 @@ const (
 	MsgRecordNotFound      = "record not found"
 	MsgInternalServerError = "internal server error"
 	MsgFailedValidation    = "validation fail"
+	MsgInvalidCredentials  = "invalid authentication credentials"
 )
 
 func SuccessOK(c *gin.Context, data any) {
@@ -44,5 +45,10 @@ func UnprocessableError(c *gin.Context, msg string) {
 
 func FailedValidationError(c *gin.Context, details []FieldError) {
 	status, res := NewError(http.StatusUnprocessableEntity, MsgFailedValidation, details...)
+	c.JSON(status, res)
+}
+
+func InvalidCredential(c *gin.Context) {
+	status, res := NewError(http.StatusUnauthorized, MsgInvalidCredentials)
 	c.JSON(status, res)
 }

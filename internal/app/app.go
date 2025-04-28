@@ -39,6 +39,7 @@ type Application struct {
 	DB                  *sql.DB
 	ResourceTypeHandler *api.ResourceTypeHandler
 	UserHandler         *api.UserHandler
+	TokenHandler        *api.TokenHandler
 	Mailer              *mailer.Mailer
 }
 
@@ -62,9 +63,15 @@ func NewApplication() (*Application, error) {
 		os.Exit(1)
 	}
 
+	// store
+	resourceTypeStore := store.NewPostgresResourceTypeStore(pgDB)
+	userStore := store.NewPostgresUserStore(pgDB)
+	tokenStore := store.NewPostgresTokenStore(pgDB)
+
 	// handlers
-	resourceTypeHandler := api.NewResourceTypeHandler(store.NewPostgresResourceTypeStore(pgDB), logger)
-	userHandler := api.NewUserHandler(store.NewPostgresUserStore(pgDB), logger, mailer)
+	resourceTypeHandler := api.NewResourceTypeHandler(resourceTypeStore, logger)
+	userHandler := api.NewUserHandler(userStore, logger, mailer)
+	tokenHandler := api.NewTokenHandler(tokenStore, userStore, logger)
 
 	app := &Application{
 		Config:              cfg,
@@ -72,6 +79,7 @@ func NewApplication() (*Application, error) {
 		DB:                  pgDB,
 		ResourceTypeHandler: resourceTypeHandler,
 		UserHandler:         userHandler,
+		TokenHandler:        tokenHandler,
 		Mailer:              mailer,
 	}
 

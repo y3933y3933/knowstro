@@ -34,6 +34,11 @@ func SetupRoutes(app *app.Application) *gin.Engine {
 				users.POST("", app.UserHandler.HandleRegisterUser)
 			}
 
+			{
+				tokens := v1.Group("tokens")
+				tokens.POST("/authentication", app.TokenHandler.HandleCreateToken)
+			}
+
 		}
 
 	}
