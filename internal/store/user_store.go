@@ -153,7 +153,9 @@ func (s *PostgresUserStore) GetForToken(tokenScope, tokenPlaintext string) (*Use
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	var user User
+	user := User{
+		Password: password{},
+	}
 
 	args := []any{
 		hash,
@@ -185,7 +187,7 @@ func (s *PostgresUserStore) GetForToken(tokenScope, tokenPlaintext string) (*Use
 func (s *PostgresUserStore) UpdateUser(user *User) error {
 	query := `
 		UPDATE users
-		SET name = $1, email = $2, password_hash = $3, activated = $4, version = version + 1
+		SET name = $1, email = $2, password_hash = $3, activated = $4, version = version + 1, updated_at = CURRENT_TIMESTAMP
 		WHERE id = $5 AND version = $6
 		RETURNING version
 	`
