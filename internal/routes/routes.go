@@ -32,6 +32,7 @@ func SetupRoutes(app *app.Application) *gin.Engine {
 			{
 				users := v1.Group("/users")
 				users.POST("", app.UserHandler.HandleRegisterUser)
+				users.PUT("/activated", app.UserHandler.HandlerActivateUser)
 			}
 
 			{

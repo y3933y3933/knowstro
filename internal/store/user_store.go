@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgconn"
+	"github.com/y3933y3933/knowstro/internal/tokens"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -25,6 +26,12 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+var AnonymousUser = &User{}
+
+func (u *User) IsAnonymous() bool {
+	return u == AnonymousUser
+}
+
 type PostgresUserStore struct {
 	db *sql.DB
 }
@@ -37,7 +44,9 @@ func NewPostgresUserStore(db *sql.DB) *PostgresUserStore {
 
 type UserStore interface {
 	CreateUser(*User) error
+	UpdateUser(*User) error
 	GetUserByName(username string) (*User, error)
+	GetForToken(tokenScope, tokenPlaintext string) (*User, error)
 }
 
 func (p *password) Set(plaintextPassword string) error {
@@ -126,4 +135,87 @@ func (s *PostgresUserStore) GetUserByName(username string) (*User, error) {
 	}
 
 	return user, nil
+}
+
+func (s *PostgresUserStore) GetForToken(tokenScope, tokenPlaintext string) (*User, error) {
+	hash := tokens.HashTokenPlainText(tokenPlaintext)
+
+	query := `
+		SELECT users.id, users.created_at, users.name, users.email, users.password_hash,users.activated
+		FROM users
+		INNER JOIN tokens
+		ON users.id = tokens.user_id
+		WHERE tokens.hash = $1
+		AND tokens.scope = $2
+		AND tokens.expiry > $3
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var user User
+
+	args := []any{
+		hash,
+		tokenScope,
+		time.Now(),
+	}
+
+	err := s.db.QueryRowContext(ctx, query, args...).Scan(
+		&user.ID,
+		&user.CreatedAt,
+		&user.Name,
+		&user.Email,
+		&user.Password.hash,
+		&user.Activated,
+	)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+	return &user, nil
+
+}
+
+func (s *PostgresUserStore) UpdateUser(user *User) error {
+	query := `
+		UPDATE users
+		SET name = $1, email = $2, password_hash = $3, activated = $4, version = version + 1
+		WHERE id = $5 AND version = $6
+		RETURNING version
+	`
+
+	args := []any{
+		user.Name,
+		user.Email,
+		user.Password.hash,
+		user.Activated,
+		user.ID,
+		user.Version,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := s.db.QueryRowContext(ctx, query, args...).Scan(&user.Version)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == UniqueViolationErr {
+			if pgErr.ConstraintName == "users_email_key" {
+				return ErrDuplicateEmail
+			}
+			if pgErr.ConstraintName == "users_name_unique" {
+				return ErrDuplicateUserName
+			}
+		}
+
+		return err
+	}
+
+	return nil
 }

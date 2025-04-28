@@ -3,11 +3,13 @@ package api
 import (
 	"errors"
 	"log/slog"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/y3933y3933/knowstro/internal/mailer"
 	"github.com/y3933y3933/knowstro/internal/response"
 	"github.com/y3933y3933/knowstro/internal/store"
+	"github.com/y3933y3933/knowstro/internal/tokens"
 	"github.com/y3933y3933/knowstro/internal/utils"
 )
 
@@ -18,16 +20,18 @@ type registerUserRequest struct {
 }
 
 type UserHandler struct {
-	userStore store.UserStore
-	logger    *slog.Logger
-	mailer    *mailer.Mailer
+	userStore  store.UserStore
+	tokenStore store.TokenStore
+	logger     *slog.Logger
+	mailer     *mailer.Mailer
 }
 
-func NewUserHandler(userStore store.UserStore, logger *slog.Logger, mailer *mailer.Mailer) *UserHandler {
+func NewUserHandler(userStore store.UserStore, tokenStore store.TokenStore, logger *slog.Logger, mailer *mailer.Mailer) *UserHandler {
 	return &UserHandler{
-		userStore: userStore,
-		logger:    logger,
-		mailer:    mailer,
+		userStore:  userStore,
+		tokenStore: tokenStore,
+		logger:     logger,
+		mailer:     mailer,
 	}
 }
 
@@ -64,14 +68,21 @@ func (h *UserHandler) HandleRegisterUser(c *gin.Context) {
 		h.logger.Error("register user: ", err.Error())
 		switch {
 		case errors.Is(err, store.ErrDuplicateEmail):
-			response.FailedValidationError(c, []response.FieldError{{Field: "Email", Message: "duplicate email"}})
+			response.FailedValidationError(c, []response.FieldError{{Field: "email", Message: "duplicate email"}})
 		case errors.Is(err, store.ErrDuplicateUserName):
-			response.FailedValidationError(c, []response.FieldError{{Field: "Name", Message: "duplicate username"}})
+			response.FailedValidationError(c, []response.FieldError{{Field: "name", Message: "duplicate username"}})
 
 		default:
 			response.InternalError(c)
 		}
 
+		return
+	}
+
+	token, err := h.tokenStore.CreateNewToken(user.ID, 3*24*time.Hour, tokens.ScopeActivation)
+	if err != nil {
+		h.logger.Error("create new token: %v", err)
+		response.InternalError(c)
 		return
 	}
 	go func() {
@@ -84,7 +95,7 @@ func (h *UserHandler) HandleRegisterUser(c *gin.Context) {
 			AppName:       "Knowstro",
 			UserName:      user.Name,
 			ActivationURL: "test",
-			Token:         "test",
+			Token:         token.Plaintext,
 		}
 
 		err = h.mailer.Send(user.Email, "user_welcome.tmpl", data)
@@ -94,4 +105,62 @@ func (h *UserHandler) HandleRegisterUser(c *gin.Context) {
 		}
 	}()
 	response.SuccessCreated(c, user)
+}
+
+func (h *UserHandler) HandlerActivateUser(c *gin.Context) {
+	var input struct {
+		TokenPlaintext string `json:"token" binding:"required"`
+	}
+
+	err := utils.ReadJSON(c, input)
+	if err != nil {
+		details, isValid := utils.ValidationErrors(err)
+		if !isValid {
+			response.FailedValidationError(c, details)
+		} else {
+			response.BadRequest(c, err.Error())
+		}
+		return
+	}
+
+	user, err := h.userStore.GetForToken(tokens.ScopeActivation, input.TokenPlaintext)
+	if err != nil {
+		h.logger.Error("get for token: %v", err)
+		switch {
+		case errors.Is(err, store.ErrRecordNotFound):
+			response.FailedValidationError(c, []response.FieldError{{
+				Field:   "token",
+				Message: "invalid or expired activation token",
+			}})
+		default:
+			response.InternalError(c)
+		}
+		return
+	}
+
+	user.Activated = true
+
+	err = h.userStore.UpdateUser(user)
+	if err != nil {
+		h.logger.Error("update user: %v", err)
+		switch {
+		case errors.Is(err, store.ErrDuplicateEmail):
+			response.FailedValidationError(c, []response.FieldError{{Field: "email", Message: "duplicate email"}})
+		case errors.Is(err, store.ErrDuplicateUserName):
+			response.FailedValidationError(c, []response.FieldError{{Field: "name", Message: "duplicate username"}})
+
+		default:
+			response.InternalError(c)
+		}
+	}
+
+	err = h.tokenStore.DeleteAllTokensForUser(user.ID, tokens.ScopeActivation)
+	if err != nil {
+		h.logger.Error("delete all tokens for user: %v", err)
+		response.InternalError(c)
+		return
+	}
+
+	response.SuccessOK(c, user)
+
 }

@@ -70,7 +70,7 @@ func NewApplication() (*Application, error) {
 
 	// handlers
 	resourceTypeHandler := api.NewResourceTypeHandler(resourceTypeStore, logger)
-	userHandler := api.NewUserHandler(userStore, logger, mailer)
+	userHandler := api.NewUserHandler(userStore, tokenStore, logger, mailer)
 	tokenHandler := api.NewTokenHandler(tokenStore, userStore, logger)
 
 	app := &Application{
